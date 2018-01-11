@@ -56,7 +56,7 @@ public:
     pixel_w(w),
     pixel_h(h),
     pitch(4096),
-    raw_frame(pixel_w*pixel_h * 3 / 2),
+    raw_frame(pitch*h),
     half_pitch(pitch/2),
     infile(nullptr)
   {
@@ -65,7 +65,7 @@ public:
 
   void render()
   {
-    if (fread(buf, 1, pixel_w * pixel_h*3/2, infile) != pixel_w * pixel_h*3/2)
+    if (fread(buf, 1, pitch * pixel_h, infile) != pitch * pixel_h)
     {
       fseek(infile, 0, SEEK_SET);
       return;
@@ -88,6 +88,7 @@ public:
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, pixel_w / 2, pixel_h / 2, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, plane1);
 
     // Draw
+    //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   }
@@ -118,7 +119,7 @@ private:
   // Y
   void copy0(UINT8 * pDest, UINT8* pData, int pixel_w)
   {
-    for (int i = 0, k = 0; i < raw_frame; k++, i += pitch)
+    for (int i = 0, k=0; i < raw_frame; ++k, i += pitch)
       memcpy(pDest + k * pixel_w, pData + i, pixel_w);
   }
 
@@ -126,8 +127,7 @@ private:
   void copy1(UINT8 * pDest, UINT8* pData, int pixel_w)
   {
     for (int i = 0, k = 0; i < raw_frame; k++, i += pitch)
-      if ((k & 0x1) == 0)
-        memcpy(pDest + k / 2 * pixel_w, pData + i + half_pitch, pixel_w);
+      if ((k & 0x1) == 0) memcpy(pDest + k / 2 * pixel_w, pData + i + half_pitch, pixel_w);
   }
 
   GLuint prog;
