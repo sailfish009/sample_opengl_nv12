@@ -17,33 +17,33 @@ static void error_callback(int error, const char* description)
 
 GLchar * vs[] =
 {
-  "attribute vec4 a_vert;  \n"
-  "attribute vec2 a_text;  \n"
-  "varying vec2    v_text;   \n"
-  "void main(){                    \n"
-  "  gl_Position = a_vert;  \n"
-  "  v_text            = a_text;  \n"
-  "}                                           \n"
+  "attribute vec4 a_vert; \n"
+  "attribute vec2 a_text; \n"
+  "varying vec2    v_text; \n"
+  "void main(){ \n"
+  "  gl_Position = a_vert; \n"
+  "  v_text            = a_text; \n"
+  "} \n"
 };
 
 GLchar * fs[] =
 {
-  "#ifdef GL_ES                                              \n"
-  "precision highp float;                              \n"
-  "#endif                                                            \n"
-  "varying vec2 v_text;                                  \n"
-  "uniform sampler2D y_text;                    \n"
-  "uniform sampler2D uv_text;                  \n"
-  "void main (void){                                        \n"
-  "  float r, g, b, y, u, v;                                    \n"
-  "  y = texture2D(y_text,   v_text).r;           \n"
+  "#ifdef GL_ES \n"
+  "precision highp float; \n"
+  "#endif \n"
+  "varying vec2 v_text; \n"
+  "uniform sampler2D y_text; \n"
+  "uniform sampler2D uv_text; \n"
+  "void main (void){ \n"
+  "  float r, g, b, y, u, v; \n"
+  "  y = texture2D(y_text,   v_text).r; \n"
   "  v = texture2D(uv_text, v_text).a - 0.5; \n"
-  "  u = texture2D(uv_text, v_text).r - 0.5;  \n"
-  "  r = y + 1.13983*v;                                        \n"
-  "  g = y - 0.39465*u - 0.58060*v;                \n"
-  "  b = y + 2.03211*u;                                      \n"
-  "  gl_FragColor = vec4(r, g, b, 1.0);           \n"
-  "}                                                                          \n"
+  "  u = texture2D(uv_text, v_text).r - 0.5; \n"
+  "  r = y + 1.13983*v; \n"
+  "  g = y - 0.39465*u - 0.58060*v; \n"
+  "  b = y + 2.03211*u; \n"
+  "  gl_FragColor = vec4(r, g, b, 1.0); \n"
+  "} \n"
 };
 
 
@@ -52,11 +52,11 @@ class stream
 public:
   virtual ~stream() {}
 
-  stream(const int w, const int h):
+  stream(const int w, const int h) :
     pixel_w(w),
     pixel_h(h),
-    pitch( (w<1024) ? 2048: 4096),
-    raw_frame(pitch*pixel_h),
+    pitch(4096),
+    raw_frame(pixel_w*pixel_h * 3 / 2),
     half_pitch(pitch/2),
     infile(nullptr)
   {
@@ -65,10 +65,9 @@ public:
 
   void render()
   {
-    if (fread(buf, 1, pitch * pixel_h, infile) != pitch *pixel_h)
+    if (fread(buf, 1, pixel_w * pixel_h*3/2, infile) != pixel_w * pixel_h*3/2)
     {
       fseek(infile, 0, SEEK_SET);
-      //fread(buf, 1, pitch * pixel_h, infile);
       return;
     }
 
@@ -212,7 +211,7 @@ private:
 int main()
 {
   // 960x540 NV12 YUV data
-  const int pixel_w = 960;
+  const int pixel_w =  960;
   const int pixel_h =  540;
 
   // GLFW
